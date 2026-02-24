@@ -1,0 +1,38 @@
+import os
+import warnings
+from langchain_community.utilities import SQLDatabase
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_core.prompts import PromptTemplate
+from langchain_community.agent_toolkits import create_sql_agent
+
+# 1. Configuration
+warnings.filterwarnings('ignore')
+os.environ["GOOGLE_API_KEY"] = "APK Key" 
+
+# 2. Database Connection (CRITICAL FIX HERE)
+# Replace these with your actual details from SQL Server Management Studio
+server = 'Database Instance'         # or 'localhost\SQLEXPRESS'
+database = 'Database' 
+driver = 'ODBC Driver 17 for SQL Server'
+
+# The f"{}" syntax plugs your variables into the string
+conn_str = f"mssql+pyodbc://@{server}/{database}?driver={driver.replace(' ', '+')}&trusted_connection=yes"
+
+try:
+    db = SQLDatabase.from_uri(conn_str)
+    print("✅ Database connected successfully!")
+except Exception as e:
+    print(f"❌ Connection Error: {e}")
+
+# 3. AI Setup
+llm = ChatGoogleGenerativeAI(model="gemini-flash-latest", temperature=0, streaming=False)
+
+# 4. Create the Agent
+agent_executor = create_sql_agent(
+    llm, 
+    db=db, 
+    agent_type="tool-calling", 
+    verbose=True
+)
+
+print("✅ agent_executor is now DEFINED and ready.")

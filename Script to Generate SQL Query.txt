@@ -1,0 +1,27 @@
+import os
+import pandas as pd
+import warnings
+from langchain_community.utilities import SQLDatabase
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_classic.chains import create_sql_query_chain
+
+# 1. HIDE THE WARNINGS
+warnings.filterwarnings('ignore', category=UserWarning, module='sqlalchemy')
+
+# 2. Connection Details
+server = ' Database Instance ' 
+database = ' Database ' # <--- Ensure this matches SSMS
+driver = 'ODBC Driver 17 for SQL Server'
+schema = 'dbo' 
+
+# 3. Build Connection String
+conn_str = f"mssql+pyodbc://@{server}/{database}?driver={driver.replace(' ', '+')}&trusted_connection=yes"
+
+# 4. Initialize Database and AI
+os.environ["GOOGLE_API_KEY"] = "APK Key"
+db = SQLDatabase.from_uri(conn_str, schema=schema)
+llm = ChatGoogleGenerativeAI(model="gemini-flash-latest", temperature=0)
+
+# 5. Output Results
+print("✅ Connection Successful!")
+print("✅ Tables found:", db.get_usable_table_names()[:10], "...and many more.")
